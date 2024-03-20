@@ -1,7 +1,7 @@
 {
   "name": "telegraf-extended",
   "module": "index.ts",
-  "version": "0.1",
+  "version": "1.0.1",
   "description": "",
   "author": "_",
   "main": "./index.ts",
@@ -9,13 +9,14 @@
     "telegraf",
     "extended"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Riclud/telegraf-extended.git"
+  },
   "license": "MIT",
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest",
     "telegraf": "^4.16.3"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
   }
 }
