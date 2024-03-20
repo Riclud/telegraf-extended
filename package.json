@@ -1,0 +1,21 @@
+{
+  "name": "telegraf-extended",
+  "module": "index.ts",
+  "version": "0.1",
+  "description": "",
+  "author": "_",
+  "main": "./index.ts",
+  "keywords": [
+    "telegraf",
+    "extended"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "telegraf": "^4.16.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
