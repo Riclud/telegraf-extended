@@ -1,18 +1,18 @@
 import { Context } from "telegraf";
-import type { IAction, IActionMachine } from "./types";
+import type { IAction, IActionMachine, R } from "./types";
 
 export class ActionMachine<C extends Context & { action: IActionMachine }> {
   private actions = new Map<string, IAction<C>>();
   private chats = new Map<number, { actionID: string }>();
-  private states = new Map<number, Record<string, string>>();
+  private states = new Map<number, R>();
 
   middleware() {
-    return (ctx: C, next: Function) => {
+    return async (ctx: C, next: Function) => {
       const chatID = ctx.chat?.id;
       if (!chatID) return;
 
       this.inject(ctx, chatID);
-      this.hander(ctx, next, chatID);
+      this.handler(ctx, next, chatID);
     };
   }
 
@@ -26,8 +26,6 @@ export class ActionMachine<C extends Context & { action: IActionMachine }> {
 
           action.send(ctx, payLoad);
         }
-
-        return { next: (fn: Function) => fn() };
       },
 
       clearState: () => this.states.set(chatID, {}),
@@ -45,16 +43,19 @@ export class ActionMachine<C extends Context & { action: IActionMachine }> {
 
         return this.states.set(chatID, {}).get(chatID);
       },
+      set: (value) => {
+        this.states.set(chatID, value);
+      },
     });
 
     ctx.action = actionContext;
   }
 
-  private async hander(ctx: C, next: Function, chatID: number) {
+  private async handler(ctx: C, next: Function, chatID: number) {
     const chat = this.chats.get(chatID);
 
     if (!chat) {
-      return next();
+      return await next();
     }
 
     const action = this.actions.get(chat.actionID)!;
@@ -70,14 +71,14 @@ export class ActionMachine<C extends Context & { action: IActionMachine }> {
     action.result && (await action.result(ctx));
     this.chats.delete(chatID);
 
-    next();
+    return await next();
   }
 
-  createAction<P extends Record<string, string>>(
+  createAction<S extends R = R, P extends R = R>(
     name: string,
     actionClass?: IAction
   ) {
-    const action: IAction<C, P> = actionClass || {
+    const action: IAction<C, S, P> = actionClass || {
       send: () => {},
     };
 
