@@ -3,7 +3,7 @@ import type { IAction, IActionMachine, R } from "./types";
 
 export class ActionMachine<C extends Context & { action: IActionMachine }> {
   private actions = new Map<string, IAction<C>>();
-  private chats = new Map<number, { actionID: string }>();
+  private chats = new Map<number, { actionID: string; payLoad?: R }[]>();
   private states = new Map<number, R>();
 
   middleware() {
@@ -22,9 +22,15 @@ export class ActionMachine<C extends Context & { action: IActionMachine }> {
         const action = this.actions.get(name);
 
         if (action) {
-          this.chats.set(chatID, { actionID: name });
+          const chat = this.chats.get(chatID);
 
-          action.send(ctx, payLoad);
+          if (!chat) {
+            this.chats.set(chatID, [{ actionID: name, payLoad }]);
+
+            return action.send(ctx, payLoad);
+          }
+
+          chat.push({ actionID: name, payLoad });
         }
       },
 
@@ -52,33 +58,39 @@ export class ActionMachine<C extends Context & { action: IActionMachine }> {
   }
 
   private async handler(ctx: C, next: Function, chatID: number) {
-    const chat = this.chats.get(chatID);
+    const actions = this.chats.get(chatID);
 
-    if (!chat) {
+    if (!actions || !actions.length) {
       return await next();
     }
 
-    const action = this.actions.get(chat.actionID)!;
+    const { actionID } = actions.at(0)!;
 
-    if (action.filter) {
-      const filterVerdict = await action.filter(ctx);
+    console.log(actionID);
 
-      if (!filterVerdict) {
-        return;
-      }
+    const action = this.actions.get(actionID)!;
+
+    if (action.filter && (await action.filter(ctx))) {
+      return;
     }
 
     action.result && (await action.result(ctx));
-    this.chats.delete(chatID);
+
+    actions.shift();
+
+    if (!actions.length) {
+      this.chats.delete(chatID);
+    } else {
+      const { actionID, payLoad } = actions.at(0)!;
+      const action = this.actions.get(actionID)!;
+      action.send(ctx, payLoad);
+    }
 
     return await next();
   }
 
-  createAction<S extends R = R, P extends R = R>(
-    name: string,
-    actionClass?: IAction
-  ) {
-    const action: IAction<C, S, P> = actionClass || {
+  createAction<S extends R = R, P extends R = R>(name: string) {
+    const action: IAction<C, S, P> = {
       send: () => {},
     };
 
