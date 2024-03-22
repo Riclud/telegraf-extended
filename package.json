@@ -1,7 +1,7 @@
 {
   "name": "telegraf-extended",
   "module": "index.ts",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "",
   "author": "_",
   "main": "./index.ts",
