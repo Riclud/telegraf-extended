@@ -1,5 +1,6 @@
 import { ActionMachine } from "./src/machine";
-import type { IAction, IActionMachine } from "./src/types";
+import { Action } from "./src/action";
+import type { ActionMachineContext } from "./src/types";
 
-export { ActionMachine };
-export type { IAction, IActionMachine };
+export { ActionMachine, Action };
+export type { ActionMachineContext };

@@ -1,8 +1,11 @@
 import { Context } from "telegraf";
-import type { IAction, IActionMachine, R } from "./types";
+import type { ActionContext, ActionMachineContext, R } from "./types";
+import { Action } from "./action";
 
-export class ActionMachine<C extends Context & { action: IActionMachine }> {
-  private actions = new Map<string, IAction<C>>();
+export class ActionMachine<
+  C extends Context & { action: ActionMachineContext }
+> {
+  private actions = new Map<string, ActionContext<C>>();
   private chats = new Map<number, { actionID: string; payLoad?: R }[]>();
   private states = new Map<number, R>();
 
@@ -17,7 +20,7 @@ export class ActionMachine<C extends Context & { action: IActionMachine }> {
   }
 
   private inject(ctx: C, chatID: number) {
-    const actionContext: IActionMachine = {
+    const actionContext: ActionMachineContext = {
       enter: (name, payLoad) => {
         const action = this.actions.get(name);
 
@@ -66,11 +69,9 @@ export class ActionMachine<C extends Context & { action: IActionMachine }> {
 
     const { actionID } = actions.at(0)!;
 
-    console.log(actionID);
-
     const action = this.actions.get(actionID)!;
 
-    if (action.filter && (await action.filter(ctx))) {
+    if (action.filter && !(await action.filter(ctx))) {
       return;
     }
 
@@ -80,22 +81,15 @@ export class ActionMachine<C extends Context & { action: IActionMachine }> {
 
     if (!actions.length) {
       this.chats.delete(chatID);
+      return await next();
     } else {
       const { actionID, payLoad } = actions.at(0)!;
       const action = this.actions.get(actionID)!;
-      action.send(ctx, payLoad);
+      await action.send(ctx, payLoad);
     }
-
-    return await next();
   }
 
-  createAction<S extends R = R, P extends R = R>(name: string) {
-    const action: IAction<C, S, P> = {
-      send: () => {},
-    };
-
-    this.actions.set(name, action);
-
-    return action;
+  connect(name: string, action: Action<C>) {
+    this.actions.set(name, action["fns"]);
   }
 }
