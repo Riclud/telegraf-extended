@@ -3,7 +3,9 @@ import type { R, ActionContext } from "./types";
 
 export class Action<C extends Context, S extends R = R, P extends R = R> {
   private fns: ActionContext<C, S, P> = {
-    send: () => {},
+    send: () => {
+      throw new Error("send function is not defined");
+    },
   };
 
   send(fn: ActionContext<C, S, P>["send"]) {
