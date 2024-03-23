@@ -71,7 +71,7 @@ const getUserNameAction = new Action<
 ```typescript
 getUserNameAction.send((ctx, payload) => {
   if (payload.update) {
-    return ctx.reply("Your new nickname ?");
+    return ctx.reply("Your new name ?");
   }
 
   ctx.reply("What's your name?");
