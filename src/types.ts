@@ -16,8 +16,8 @@ export type ActionContext<
   result?(ctx: ContextUtil<C, S>): unknown | Promise<unknown>;
 };
 
-export type ActionMachineContext = {
-  enter<P extends R = R>(name: string, payLoad?: P): void;
+export type ActionMachineContext<N extends string = string> = {
+  enter<P extends R = R>(name: N, payLoad?: P): void;
   clearState(): void;
   state: R;
 };
