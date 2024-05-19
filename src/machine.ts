@@ -81,7 +81,7 @@ export class ActionMachine<
 
     if (!actions.length) {
       this.chats.delete(chatID);
-      return await next();
+      // return await next();
     } else {
       const { actionID, payLoad } = actions.at(0)!;
       const action = this.actions.get(actionID)!;
