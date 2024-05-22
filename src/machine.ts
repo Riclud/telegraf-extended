@@ -92,4 +92,8 @@ export class ActionMachine<
   connect(name: string, action: Action<C>) {
     this.actions.set(name, action["fns"]);
   }
+
+  connectClass(name: string, actionInstance: ActionContext<C>) {
+    this.actions.set(name, actionInstance);
+  }
 }
